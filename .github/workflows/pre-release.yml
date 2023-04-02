@@ -1,0 +1,39 @@
+name: Pre-release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - src/**
+      - .github/workflows/pre-release.yml
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build & Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build pwebm-helper.js
+        run: npm run build
+
+      - name: Delete previous pre-release
+        run: gh release delete --yes --cleanup-tag bleeding-edge
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create a new pre-release
+        uses: softprops/action-gh-release@v1
+        with:
+          prerelease: true
+          tag_name: bleeding-edge
+          body: Pre-release with the latest commits
+          files: dist/pwebm-helper.js
