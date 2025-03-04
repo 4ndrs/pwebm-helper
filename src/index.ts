@@ -70,8 +70,8 @@ const encode = (params: string) => {
 
   const command = [options.executable];
 
-  command.push(...timestampsArray);
   command.push("-i", path);
+  command.push(...timestampsArray);
 
   if (burnSubs) {
     command.push("-subs");
@@ -98,9 +98,9 @@ const toggleBurnSubs = () => {
 let burnSubs = false;
 
 const options = {
-  executable: "purewebm",
+  executable: "pwebm",
   params1: "",
-  params2: '-ep "-map 0 -c copy -c:v libx264 -crf 18 -preset veryslow"',
+  params2: "-c:v libx264 -crf 18",
   keybinding1: "ctrl+o",
   keybinding2: "ctrl+shift+o",
 };
@@ -110,9 +110,9 @@ mp.options.read_options(options, "pwebm-helper");
 mp.add_key_binding("ctrl+v", "burn-subtitles", toggleBurnSubs);
 
 mp.add_key_binding(options.keybinding1, "pwebm-encode1", () =>
-  encode(options.params1)
+  encode(options.params1),
 );
 
 mp.add_key_binding(options.keybinding2, "pwebm-encode2", () =>
-  encode(options.params2)
+  encode(options.params2),
 );
