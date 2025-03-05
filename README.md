@@ -6,7 +6,7 @@ This is a small mpv script to aid the conversion of videos with [PureMPV](https:
 
 The automatically built script can be downloaded from [here](https://github.com/4ndrs/pwebm-helper/releases/download/bleeding-edge/pwebm-helper.js), or if you prefer building it manually:
 
-```console
+```bash
 git clone https://github.com/4ndrs/pwebm-helper.git
 cd pwebm-helper
 npm i
