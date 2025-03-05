@@ -70,11 +70,15 @@ const encode = (params: string) => {
 
   const command = [options.executable];
 
-  command.push("-i", path);
-  command.push(...timestampsArray);
-
   if (burnSubs) {
     command.push("-subs");
+
+    // burning the subs needs output seeking, otherwise they will be de-synced
+    command.push("-i", path);
+    command.push(...timestampsArray);
+  } else {
+    command.push(...timestampsArray);
+    command.push("-i", path);
   }
 
   command.push(...cropboxArray);
