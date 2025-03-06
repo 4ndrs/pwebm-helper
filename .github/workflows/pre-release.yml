@@ -33,6 +33,7 @@ jobs:
       - name: Create a new pre-release
         uses: softprops/action-gh-release@v1
         with:
+          draft: false
           prerelease: true
           tag_name: bleeding-edge
           body: Pre-release with the latest commits
