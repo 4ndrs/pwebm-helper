@@ -25,16 +25,19 @@ jobs:
       - name: Build pwebm-helper.js
         run: npm run build
 
-      - name: Delete previous pre-release
-        run: gh release delete --yes --cleanup-tag bleeding-edge
+      - name: Delete previous pre-release if it exists
+        run: |
+          if gh release view bleeding-edge &>/dev/null; then
+            gh release delete --yes --cleanup-tag bleeding-edge
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create a new pre-release
-        uses: softprops/action-gh-release@v1
-        with:
-          draft: false
-          prerelease: true
-          tag_name: bleeding-edge
-          body: Pre-release with the latest commits
-          files: dist/pwebm-helper.js
+        run: |
+          gh release create bleeding-edge dist/pwebm-helper.js \
+            --title "bleeding-edge" \
+            --notes "Pre-release with the latest commits" \
+            --prerelease
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
