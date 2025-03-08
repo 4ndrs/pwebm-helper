@@ -9,8 +9,8 @@ The automatically built script can be downloaded from [here](https://github.com/
 ```bash
 git clone https://github.com/4ndrs/pwebm-helper.git
 cd pwebm-helper
-npm i
-npm run build
+bun i
+bun run build
 ```
 
 The built script will be available under the newly created `dist` folder.

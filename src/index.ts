@@ -1,3 +1,5 @@
+import { parser } from "./parser";
+
 interface PureMPVData {
   cropbox: {
     w: number | null;
@@ -91,12 +93,106 @@ const encode = (params: string) => {
     args: command,
     detach: true,
   });
+
+  if (options.showEncodingStatus) {
+    registerStatusChecker();
+  }
 };
 
 const toggleBurnSubs = () => {
   burnSubs = !burnSubs;
 
   mp.osd_message(`Burn subtitles: ${burnSubs ? "yes" : "no"}`);
+};
+
+type AssertNever = (value: never) => never;
+
+const assertNever: AssertNever = (value) => {
+  throw new Error(`Unexpected value: ${value}`);
+};
+
+let statusCheckerId: number | undefined;
+
+const registerStatusChecker = () => {
+  if (statusCheckerId !== undefined) {
+    return;
+  }
+
+  statusCheckerId = setInterval(showStatusInOSD, 2000);
+};
+
+const unregisterStatusChecker = () => {
+  clearInterval(statusCheckerId);
+
+  statusCheckerId = undefined;
+};
+
+const showStatusInOSD = () => {
+  const COLORS = {
+    RED: "{\\c&H0033FF&}",
+    BLUE: "{\\c&HFF9933&}",
+    GREEN: "{\\c&H33FF33&}",
+    WHTIE: "{\\c&HFFFFFF&}",
+    YELLOW: "{\\c&H00FFFF&}",
+    ORANGE: "{\\c&H00A5FF&}",
+  };
+
+  const process = mp.command_native({
+    name: "subprocess",
+    args: [options.executable, "-status"],
+    capture_stdout: true,
+  });
+
+  if (process.status !== 0) {
+    unregisterStatusChecker();
+
+    return;
+  }
+
+  const status = parser.parseStatus(process.stdout);
+
+  let message: string;
+
+  switch (status.stage) {
+    case "IDLE":
+      message = "Encoder is idling";
+      break;
+    case "SINGLE-PASS":
+      if (status.percentage === undefined) {
+        message = `Encoding ${status.current} of ${status.total}: ${COLORS.BLUE}Processing single pass`;
+
+        break;
+      }
+
+      message = `Encoding ${status.current} of ${status.total}: ${COLORS.BLUE}${status.percentage}%`;
+
+      break;
+    case "FIRST-PASS":
+      message =
+        `Encoding ${status.current} of ${status.total}: ${COLORS.BLUE}Processing the first pass` +
+        (status.tries > 1 ? ` ${COLORS.YELLOW}(try ${status.tries})` : "");
+
+      break;
+    case "SECOND-PASS":
+      if (status.percentage === undefined) {
+        message =
+          `Encoding ${status.current} of ${status.total}: ${COLORS.BLUE}Processing the second pass` +
+          (status.tries > 1 ? ` ${COLORS.YELLOW}(try ${status.tries})` : "");
+
+        break;
+      }
+
+      message = `Encoding ${status.current} of ${status.total}: ${COLORS.BLUE}${status.percentage}%`;
+
+      break;
+    default:
+      assertNever(status);
+  }
+
+  const assStop = mp.get_property("osd-ass-cc/1");
+  const assStart = mp.get_property("osd-ass-cc/0");
+
+  mp.osd_message(assStart + message + assStop, 3);
 };
 
 let burnSubs = false;
@@ -107,11 +203,26 @@ const options = {
   params2: "-c:v libx264 -crf 18",
   keybinding1: "ctrl+o",
   keybinding2: "ctrl+shift+o",
+  showEncodingStatus: false,
 };
 
 mp.options.read_options(options, "pwebm-helper");
 
 mp.add_key_binding("ctrl+v", "burn-subtitles", toggleBurnSubs);
+
+mp.add_key_binding("ctrl+s", "show-encoding-status", () => {
+  options.showEncodingStatus = !options.showEncodingStatus;
+
+  mp.osd_message(
+    "Show encoding status: " + (options.showEncodingStatus ? "yes" : "no"),
+  );
+
+  if (options.showEncodingStatus) {
+    registerStatusChecker();
+  } else {
+    unregisterStatusChecker();
+  }
+});
 
 mp.add_key_binding(options.keybinding1, "pwebm-encode1", () =>
   encode(options.params1),
