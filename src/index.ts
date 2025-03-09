@@ -218,6 +218,7 @@ const options = {
   keybinding1: "ctrl+o",
   keybinding2: "ctrl+shift+o",
   burnSubsKeybinding: "ctrl+v",
+  showEncodingStatusKeybinding: "ctrl+s",
 };
 
 mp.options.read_options(options, "pwebm-helper");
@@ -234,19 +235,23 @@ mp.add_key_binding(
   toggleBurnSubs,
 );
 
-mp.add_key_binding("ctrl+s", "show-encoding-status", () => {
-  options.showEncodingStatus = !options.showEncodingStatus;
+mp.add_key_binding(
+  options.showEncodingStatusKeybinding,
+  "show-encoding-status",
+  () => {
+    options.showEncodingStatus = !options.showEncodingStatus;
 
-  mp.osd_message(
-    "Show encoding status: " + (options.showEncodingStatus ? "yes" : "no"),
-  );
+    mp.osd_message(
+      "Show encoding status: " + (options.showEncodingStatus ? "yes" : "no"),
+    );
 
-  if (options.showEncodingStatus) {
-    registerStatusChecker();
-  } else {
-    unregisterStatusChecker();
-  }
-});
+    if (options.showEncodingStatus) {
+      registerStatusChecker();
+    } else {
+      unregisterStatusChecker();
+    }
+  },
+);
 
 mp.add_key_binding(options.keybinding1, "pwebm-encode1", () =>
   encode(options.params1),
