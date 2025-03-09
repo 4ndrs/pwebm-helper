@@ -1,8 +1,8 @@
 - [x] display status information on the screen
 - [x] disable/enable status information keybinding
 - [x] disable/enable status config options
-- [ ] output seeking option
-- [ ] update docs
+- [x] input seeking option
 - [ ] add option to change toggle subs keybinding
 - [ ] fix CI (install deps & build with bun)
 - [ ] bundling with bun might work now unlike before in the early days
+- [ ] update docs

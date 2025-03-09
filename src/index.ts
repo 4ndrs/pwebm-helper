@@ -74,13 +74,15 @@ const encode = (params: string) => {
 
   if (burnSubs) {
     command.push("-subs");
+  }
 
-    // burning the subs needs output seeking, otherwise they will be de-synced
-    command.push("-i", path);
+  // burning the subs needs output seeking, otherwise they will be de-synced
+  if (options.inputSeeking && !burnSubs) {
     command.push(...timestampsArray);
+    command.push("-i", path);
   } else {
-    command.push(...timestampsArray);
     command.push("-i", path);
+    command.push(...timestampsArray);
   }
 
   command.push(...cropboxArray);
@@ -212,6 +214,7 @@ const options = {
   params2: "-c:v libx264 -crf 18",
   keybinding1: "ctrl+o",
   keybinding2: "ctrl+shift+o",
+  inputSeeking: true,
   showEncodingStatus: false,
 };
 
