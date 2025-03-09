@@ -72,12 +72,12 @@ const encode = (params: string) => {
 
   const command = [options.executable];
 
-  if (burnSubs) {
+  if (options.burnSubs) {
     command.push("-subs");
   }
 
   // burning the subs needs output seeking, otherwise they will be de-synced
-  if (options.inputSeeking && !burnSubs) {
+  if (options.inputSeeking && !options.burnSubs) {
     command.push(...timestampsArray);
     command.push("-i", path);
   } else {
@@ -102,9 +102,9 @@ const encode = (params: string) => {
 };
 
 const toggleBurnSubs = () => {
-  burnSubs = !burnSubs;
+  options.burnSubs = !options.burnSubs;
 
-  mp.osd_message(`Burn subtitles: ${burnSubs ? "yes" : "no"}`);
+  mp.osd_message(`Burn subtitles: ${options.burnSubs ? "yes" : "no"}`);
 };
 
 type AssertNever = (value: never) => never;
@@ -206,16 +206,18 @@ const showStatusInOSD = () => {
   mp.osd_message(assStart + message + assStop, 3);
 };
 
-let burnSubs = false;
-
 const options = {
   executable: "pwebm",
   params1: "",
   params2: "-c:v libx264 -crf 18",
-  keybinding1: "ctrl+o",
-  keybinding2: "ctrl+shift+o",
+  burnSubs: false,
   inputSeeking: true,
   showEncodingStatus: false,
+
+  // keybindings
+  keybinding1: "ctrl+o",
+  keybinding2: "ctrl+shift+o",
+  burnSubsKeybinding: "ctrl+v",
 };
 
 mp.options.read_options(options, "pwebm-helper");
@@ -226,7 +228,11 @@ if (options.showEncodingStatus) {
   registerStatusChecker();
 }
 
-mp.add_key_binding("ctrl+v", "burn-subtitles", toggleBurnSubs);
+mp.add_key_binding(
+  options.burnSubsKeybinding,
+  "burn-subtitles",
+  toggleBurnSubs,
+);
 
 mp.add_key_binding("ctrl+s", "show-encoding-status", () => {
   options.showEncodingStatus = !options.showEncodingStatus;
