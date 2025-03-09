@@ -18,12 +18,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
-        run: npm ci
+        run: bun i
 
       - name: Build pwebm-helper.js
-        run: npm run build
+        run: bun run build
 
       - name: Delete previous pre-release if it exists
         run: |

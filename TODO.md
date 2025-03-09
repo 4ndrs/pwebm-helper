@@ -6,5 +6,4 @@
 - [x] add option to change toggle subs keybinding
 - [x] add option to change toggle status keybinding
 - [ ] fix CI (install deps & build with bun)
-- [ ] bundling with bun might work now unlike before in the early days
 - [ ] update docs
