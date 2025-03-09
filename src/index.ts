@@ -118,7 +118,7 @@ const registerStatusChecker = () => {
     return;
   }
 
-  statusCheckerId = setInterval(showStatusInOSD, 2000);
+  statusCheckerId = setInterval(showStatusInOSD, 500);
 };
 
 const unregisterStatusChecker = () => {
@@ -127,27 +127,34 @@ const unregisterStatusChecker = () => {
   statusCheckerId = undefined;
 };
 
+let encodingDetected = false;
+
 const showStatusInOSD = () => {
   const COLORS = {
-    RED: "{\\c&H0033FF&}",
-    BLUE: "{\\c&HFF9933&}",
-    GREEN: "{\\c&H33FF33&}",
-    WHTIE: "{\\c&HFFFFFF&}",
-    YELLOW: "{\\c&H00FFFF&}",
-    ORANGE: "{\\c&H00A5FF&}",
+    BLUE: "{\\b1\\c&HF5B158&}",
+    YELLOW: "{\\b1\\c&H059e3ff&}",
   };
 
   const process = mp.command_native({
     name: "subprocess",
     args: [options.executable, "-status"],
     capture_stdout: true,
+    capture_stderr: true,
   });
 
   if (process.status !== 0) {
     unregisterStatusChecker();
 
+    if (encodingDetected) {
+      mp.osd_message("All encodings finished!", 3);
+
+      encodingDetected = false;
+    }
+
     return;
   }
+
+  encodingDetected = true;
 
   const status = parser.parseStatus(process.stdout);
 
@@ -159,7 +166,7 @@ const showStatusInOSD = () => {
       break;
     case "SINGLE-PASS":
       if (status.percentage === undefined) {
-        message = `Encoding ${status.current} of ${status.total}: ${COLORS.BLUE}Processing single pass`;
+        message = `Encoding ${status.current} of ${status.total}: ${COLORS.BLUE}Processing the single pass`;
 
         break;
       }
@@ -182,7 +189,9 @@ const showStatusInOSD = () => {
         break;
       }
 
-      message = `Encoding ${status.current} of ${status.total}: ${COLORS.BLUE}${status.percentage}%`;
+      message =
+        `Encoding ${status.current} of ${status.total}: ${COLORS.BLUE}${status.percentage}%` +
+        (status.tries > 1 ? ` ${COLORS.YELLOW}(try ${status.tries})` : "");
 
       break;
     default:
@@ -207,6 +216,12 @@ const options = {
 };
 
 mp.options.read_options(options, "pwebm-helper");
+
+if (options.showEncodingStatus) {
+  // run the checker as soon as we open mpv
+  // we want to show anything that is encoding when switching mpv windows
+  registerStatusChecker();
+}
 
 mp.add_key_binding("ctrl+v", "burn-subtitles", toggleBurnSubs);
 
